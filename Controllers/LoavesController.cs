@@ -28,7 +28,7 @@ namespace LoafAndStranger.Controllers
         public IActionResult AddALoaf(Loaf loaf)
         {
             _repo.Add(loaf);
-            return Created($"api/Loaves/{loaf.id}", loaf);
+            return Created($"api/Loaves/{loaf.Id}", loaf);
         }
 
         //GET to /api/loaves/{id}

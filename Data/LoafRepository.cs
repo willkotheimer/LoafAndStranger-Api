@@ -1,42 +1,124 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using LoafAndStranger.Models;
+using Microsoft.Data.SqlClient;
 
 namespace LoafAndStranger.Data
 {
     public class LoafRepository
     {
 
-        static List<Loaf> _loaves = new List<Loaf>
-            {
-                new Loaf { id=1, Price = 5.50, Size = LoafSize.Medium, Sliced = true, Type = "Rye" },
-                new Loaf { id=2, Price = 2.50, Size = LoafSize.Small, Sliced = false, Type = "French" }
-            };
+        const string ConnectionString = "Server=localhost; Database=LoafAndStranger; Trusted_Connection=True";
+
 
         public List<Loaf> GetAll()
         {
+            // Loaf array
+            var _loaves = new List<Loaf>();
+
+            //connectionstrings.com
+            //which server address, which database, which user
+            using var connection = new SqlConnection(ConnectionString);
+
+            connection.Open();
+
+            var command = connection.CreateCommand();
+
+            //telling the command what you want it to do
+
+            var sql = @"Select * From Loaves";
+            command.CommandText = sql;
+
+            //send the command to sql
+            // execute the command
+
+            var reader = command.ExecuteReader();
+
+            while (reader.Read())
+            {
+                //add to the list
+                _loaves.Add(MapLoaf(reader));
+            }
             return _loaves;
+
+
         }
 
         public void Add(Loaf loaf)
         {
-            var biggestExistingId = _loaves.Max(l => l.id);
-            loaf.id = biggestExistingId + 1;
-            _loaves.Add(loaf);
+            using var connection = new SqlConnection(ConnectionString);
+            connection.Open();
+            var cmd = connection.CreateCommand();
+            cmd.CommandText = @"INSERT INTO [Loaves] ([Size],[Type],[WeightInOunces],[Price],[Sliced])
+                                OUTPUT inserted.Id
+                                VALUES(@Size, @type, @weightInOunces, @Price, @Sliced)";
+            cmd.Parameters.AddWithValue("Size", loaf.Size);
+            cmd.Parameters.AddWithValue("type", loaf.Type);
+            cmd.Parameters.AddWithValue("weightInOunces", loaf.WeightInOunces);
+            cmd.Parameters.AddWithValue("Price", loaf.Price);
+            cmd.Parameters.AddWithValue("Sliced", loaf.Sliced);
+
+            var id = (int)cmd.ExecuteScalar();
+            loaf.Id = id;
         }
 
         public Loaf Get(int id)
         {
-            var loaf = _loaves.FirstOrDefault(l => l.id == id);
-            return loaf;
+            var sql = @"Select * From Loaves Where Id = @id";
+
+            //Create a connection 
+            using var connection = new SqlConnection(ConnectionString);
+            connection.Open();
+
+            //create command
+            var command = connection.CreateCommand();
+            command.CommandText = sql;
+            command.Parameters.AddWithValue("id", id);
+
+            //Execute command
+            var reader = command.ExecuteReader();
+            if(reader.Read())
+            {
+                var loaf = MapLoaf(reader);
+                return loaf;
+            }
+
+            return null;
         }
 
         public void Remove(int id) {
-            var loafToRemove = Get(id);
-            _loaves.Remove(loafToRemove);
-           
+            using var connection = new SqlConnection(ConnectionString);
+            connection.Open();
+
+            var cmd = connection.CreateCommand();
+            cmd.CommandText = @"Delete from Loaves where Id=@id";
+            cmd.ExecuteNonQuery();
+        }
+
+        Loaf MapLoaf(SqlDataReader reader)
+        {
+            // get each column value from the reader
+            var id = (int)reader["Id"]; //explicit cast (throws exception)
+            var size = (LoafSize)reader["Size"];
+            var type = reader["Type"] as string; // implicit cast (returns null)
+            var price = (decimal)reader["price"];
+            var weightInOunces = (int)reader["weightInOunces"];
+            var sliced = (bool)reader["sliced"];
+            var createdDate = (DateTime)reader["createdDate"];
+
+            var loaf = new Loaf
+            {
+                Id = id,
+                Price = price,
+                Size = size,
+                Sliced = sliced,
+                Type = type,
+                WeightInOunces = weightInOunces
+            };
+
+            return loaf;
+
         }
 
     }

@@ -8,10 +8,10 @@ namespace LoafAndStranger.Models
     // Models are for storing pieces of information
     public class Loaf
     {
-        public int id {get; set;}
+        public int Id { get; set; }
         public LoafSize Size { get; set; }
         public string Type { get; set; }
-        public double Price { get; set; }
+        public decimal Price { get; set; }
         public int WeightInOunces { get; set; }
         public bool Sliced { get; set; }
     }
