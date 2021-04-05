@@ -30,19 +30,13 @@ namespace LoafAndStranger.Data
 
         public void Add(Loaf loaf)
         {
-            using var connection = new SqlConnection(ConnectionString);
-            connection.Open();
-            var cmd = connection.CreateCommand();
-            cmd.CommandText = @"INSERT INTO [Loaves] ([Size],[Type],[WeightInOunces],[Price],[Sliced])
+            using var db = new SqlConnection(ConnectionString);
+            
+            var sql = @"INSERT INTO [Loaves] ([Size],[Type],[WeightInOunces],[Price],[Sliced])
                                 OUTPUT inserted.Id
                                 VALUES(@Size, @type, @weightInOunces, @Price, @Sliced)";
-            cmd.Parameters.AddWithValue("Size", loaf.Size);
-            cmd.Parameters.AddWithValue("type", loaf.Type);
-            cmd.Parameters.AddWithValue("weightInOunces", loaf.WeightInOunces);
-            cmd.Parameters.AddWithValue("Price", loaf.Price);
-            cmd.Parameters.AddWithValue("Sliced", loaf.Sliced);
+            var id = db.ExecuteScalar<int>(sql, loaf);
 
-            var id = (int)cmd.ExecuteScalar();
             loaf.Id = id;
         }
 
