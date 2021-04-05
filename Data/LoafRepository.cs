@@ -8,10 +8,8 @@ using Dapper;
 namespace LoafAndStranger.Data
 {
     public class LoafRepository
-    {
-
+    { 
         const string ConnectionString = "Server=localhost; Database=LoafAndStranger; Trusted_Connection=True";
-
 
         public List<Loaf> GetAll()
         {
@@ -54,12 +52,10 @@ namespace LoafAndStranger.Data
         }
 
         public void Remove(int id) {
-            using var connection = new SqlConnection(ConnectionString);
-            connection.Open();
-
-            var cmd = connection.CreateCommand();
-            cmd.CommandText = @"Delete from Loaves where Id=@id";
-            cmd.ExecuteNonQuery();
+            using var db = new SqlConnection(ConnectionString);
+           
+            var sql = @"Delete from Loaves where Id=@id";
+            db.Execute(sql, new { id });
         }
 
         Loaf MapLoaf(SqlDataReader reader)
