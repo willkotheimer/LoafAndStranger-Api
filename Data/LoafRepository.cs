@@ -48,26 +48,15 @@ namespace LoafAndStranger.Data
 
         public Loaf Get(int id)
         {
-            var sql = @"Select * From Loaves Where Id = @id";
+            var sql = @"Select * 
+                        From Loaves 
+                        Where Id = @id";
 
             //Create a connection 
-            using var connection = new SqlConnection(ConnectionString);
-            connection.Open();
+            using var db = new SqlConnection(ConnectionString);
 
-            //create command
-            var command = connection.CreateCommand();
-            command.CommandText = sql;
-            command.Parameters.AddWithValue("id", id);
-
-            //Execute command
-            var reader = command.ExecuteReader();
-            if(reader.Read())
-            {
-                var loaf = MapLoaf(reader);
-                return loaf;
-            }
-
-            return null;
+            var loaf = db.QueryFirstOrDefault<Loaf>(sql, new { id = id });
+            return loaf;
         }
 
         public void Remove(int id) {
