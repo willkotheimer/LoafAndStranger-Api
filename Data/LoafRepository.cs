@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LoafAndStranger.Models;
 using Microsoft.Data.SqlClient;
+using Dapper;
 
 namespace LoafAndStranger.Data
 {
@@ -17,31 +18,13 @@ namespace LoafAndStranger.Data
             // Loaf array
             var _loaves = new List<Loaf>();
 
-            //connectionstrings.com
-            //which server address, which database, which user
-            using var connection = new SqlConnection(ConnectionString);
-
-            connection.Open();
-
-            var command = connection.CreateCommand();
-
-            //telling the command what you want it to do
+            using var db = new SqlConnection(ConnectionString);
 
             var sql = @"Select * From Loaves";
-            command.CommandText = sql;
 
-            //send the command to sql
-            // execute the command
+            var results = db.Query<Loaf>(sql).ToList();
 
-            var reader = command.ExecuteReader();
-
-            while (reader.Read())
-            {
-                //add to the list
-                _loaves.Add(MapLoaf(reader));
-            }
-            return _loaves;
-
+            return results;
 
         }
 
